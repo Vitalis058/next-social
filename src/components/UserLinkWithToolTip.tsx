@@ -1,0 +1,58 @@
+"use client";
+import kyInstance from "@/lib/ky";
+import { UserData } from "@/lib/types";
+import { useQuery } from "@tanstack/react-query";
+import { HTTPError } from "ky";
+import Link from "next/link";
+import { PropsWithChildren } from "react";
+import UserTooltip from "./UserTooltip";
+
+interface UserLinkWithToolTipProps extends PropsWithChildren {
+  username: string;
+}
+
+function UserLinkWithToolTip({ children, username }: UserLinkWithToolTipProps) {
+  const { data } = useQuery({
+    //cahe each username data
+    queryKey: ["user-data", username],
+    queryFn: () =>
+      kyInstance.get(`/api/users/username/${username}`).json<UserData>(),
+
+    //retries if theres any error apart from error 404
+    retry(failureCount, error) {
+      if (error instanceof HTTPError && error.response.status === 404) {
+        return false;
+      }
+
+      return failureCount < 3;
+    },
+
+    // caching time
+    staleTime: Infinity,
+  });
+
+  // if theres no data
+  if (!data) {
+    return (
+      <Link href={`users/${username}`} className="text-primary hover:underline">
+        {children}
+      </Link>
+    );
+  }
+
+  //data included
+  if (data) {
+    return (
+      <UserTooltip user={data}>
+        <Link
+          href={`users/${username}`}
+          className="text-primary hover:underline"
+        >
+          {children}
+        </Link>
+      </UserTooltip>
+    );
+  }
+}
+
+export default UserLinkWithToolTip;
