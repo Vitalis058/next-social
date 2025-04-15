@@ -44,7 +44,7 @@ export const useSubmitCommentMutation = (postId: string) => {
         },
       );
 
-      //refetch the data
+      //refetch
       queryClient.invalidateQueries({
         queryKey,
         predicate(query) {
