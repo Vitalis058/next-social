@@ -5,7 +5,7 @@ interface CommentProps {
 }
 
 function Comment({ comment }: CommentProps) {
-  return <div></div>;
+  return <div>{comment.content}</div>;
 }
 
 export default Comment;

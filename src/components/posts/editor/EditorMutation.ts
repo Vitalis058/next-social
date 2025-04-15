@@ -1,7 +1,6 @@
 import { useToast } from "@/hooks/use-toast";
 import {
   InfiniteData,
-  QueryFilters,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
@@ -17,27 +16,23 @@ export function useSubmitPostMutation() {
   const mutation = useMutation({
     mutationFn: submitPost,
     onSuccess: async (newPost) => {
-      const queryFilter = {
-        queryKey: ["post-feed"],
+      const forYouQueryKey = ["post-feed", "for-you"];
+      const userPostsQueryKey = ["post-feed", "user-posts", user.id];
 
-        //targeting query keys that include the listed keys
-        predicate(query) {
-          return (
-            query.queryKey.includes("for-you") ||
-            (query.queryKey.includes("user-posts") &&
-              query.queryKey.includes(user.id))
-          );
-        },
-      } satisfies QueryFilters;
+      await queryClient.cancelQueries({ queryKey: forYouQueryKey });
+      await queryClient.cancelQueries({ queryKey: userPostsQueryKey });
 
       //cancel all the queries
-      await queryClient.cancelQueries(queryFilter);
 
       queryClient.setQueriesData<InfiniteData<PostsPage>>(
-        queryFilter,
+        { queryKey: forYouQueryKey },
+
         (oldData) => {
           //returns if the old data is available
+          if (!oldData) return undefined;
+
           const firstPage = oldData?.pages[0];
+
           if (firstPage) {
             return {
               pageParams: oldData.pageParams,
@@ -53,14 +48,34 @@ export function useSubmitPostMutation() {
         },
       );
 
+      queryClient.setQueriesData<InfiniteData<PostsPage>>(
+        { queryKey: userPostsQueryKey },
+        (oldData) => {
+          if (!oldData) return undefined;
+
+          const firstPage = oldData.pages[0];
+          if (firstPage) {
+            return {
+              pageParams: oldData.pageParams,
+              pages: [
+                {
+                  posts: [newPost, ...firstPage.posts],
+                  nextCursor: firstPage.nextCursor,
+                },
+                ...oldData.pages.slice(1),
+              ],
+            };
+          }
+          return oldData;
+        },
+      );
+
       //invalidate the queries when the data is null
       //if we canceled the query before the data was fetched
       queryClient.invalidateQueries({
-        queryKey: queryFilter.queryKey,
-        predicate(query) {
-          return queryFilter.predicate(query) && !query.state.data;
-        },
+        queryKey: forYouQueryKey,
       });
+      queryClient.invalidateQueries({ queryKey: userPostsQueryKey });
 
       toast({
         description: "Post Created",

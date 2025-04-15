@@ -6,6 +6,7 @@ import {
   QueryFilters,
   useMutation,
   useQueryClient,
+  QueryKey,
 } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { updateUserProfile } from "./action";
@@ -37,7 +38,12 @@ export function useUpdateProfileMutation() {
     onSuccess: async ([updatedUser, uploadResult]) => {
       //create an avatar url
       const newAvatarUrl = uploadResult?.[0].serverData.avatarUrl;
-      const queryFilter: QueryFilters = {
+      const queryFilter: QueryFilters<
+        InfiniteData<PostsPage, string | null>,
+        Error,
+        InfiniteData<PostsPage, string | null>,
+        QueryKey
+      > = {
         queryKey: ["post-feed"],
       };
 

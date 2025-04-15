@@ -21,7 +21,12 @@ export function useDeletePost() {
     //mutate the posts
     onSuccess: async (deletedPost) => {
       //indentifying the cache to mutate depending on the query key(query filter)
-      const queryFilter: QueryFilters = { queryKey: ["post-feed"] };
+      const queryFilter: QueryFilters<
+        InfiniteData<PostsPage, string | null>,
+        Error,
+        InfiniteData<PostsPage, string | null>,
+        readonly unknown[]
+      > = { queryKey: ["post-feed"] };
 
       // we first cancel all the queries with this query key
       await queryClient.cancelQueries(queryFilter);

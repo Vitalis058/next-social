@@ -90,7 +90,7 @@ export default function Post({ post }: PostProps) {
         />
       </div>
 
-      {showComments && <Comments postData={post} />}
+      {showComments && <Comments post={post} />}
     </article>
   );
 }

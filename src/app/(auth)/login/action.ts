@@ -2,7 +2,6 @@
 
 import prisma from "@/lib/prisma";
 import { loginSchema, loginValues } from "@/lib/validation";
-import { isRedirectError } from "next/dist/client/components/redirect";
 import { verify } from "@node-rs/argon2";
 import { cookies } from "next/headers";
 import { lucia } from "@/auth";
@@ -13,6 +12,7 @@ export async function login(
 ): Promise<{ error: string }> {
   try {
     const { password, username } = loginSchema.parse(credentials);
+    console.log(password, username);
 
     const existingUser = await prisma.user.findFirst({
       where: {
@@ -55,10 +55,9 @@ export async function login(
     );
 
     return redirect("/");
-  } catch (error) {
-    if (isRedirectError(error)) throw error;
-    console.log(error, "login action");
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.log(error, "sign-in");
     return {
       error: "something went wrong",
     };

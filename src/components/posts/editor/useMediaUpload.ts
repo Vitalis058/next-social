@@ -50,6 +50,8 @@ export default function useMediaUpload() {
 
           if (!uploadResult) return att;
 
+          console.log(uploadResult);
+
           return {
             ...att,
             mediaId: uploadResult.serverData.mediaId,

@@ -5,7 +5,6 @@ import prisma from "@/lib/prisma";
 import { signUpSchema, signUpValues } from "@/lib/validation";
 import { hash } from "@node-rs/argon2";
 import { generateIdFromEntropySize } from "lucia";
-import { isRedirectError } from "next/dist/client/components/redirect";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -81,8 +80,7 @@ export async function signUp(
 
     return redirect("/");
   } catch (error) {
-    if (isRedirectError(error)) throw error;
-    console.error(error);
+  console.log(error, 'sign-up');
     return {
       error: " something went wrong",
     };
